@@ -107,6 +107,7 @@ namespace GotifyWindowsClient
             var config = ConfigurationManager.AppSettings;
             var serverUrl = config["ServerUrl"] ?? "http://localhost:3000";
             var clientToken = config["ClientToken"];
+            var extractRegex = config["ExtractRegex"];
 
             var wsUrl = serverUrl
                 .Replace("http://", "ws://")
@@ -142,6 +143,17 @@ namespace GotifyWindowsClient
                                 var message = JsonSerializer.Deserialize<GotifyMessage>(jsonBytes, options);
                                 var title = string.IsNullOrEmpty(message.Title) ? "无标题" : message.Title;
                                 var content = string.IsNullOrEmpty(message.Content) ? "空内容" : message.Content;
+
+                                // 尝试提取文本，如验证码，并复制到剪贴板
+                                if (!string.IsNullOrEmpty(extractRegex))
+                                {
+                                    var extracted = ExtractText(extractRegex, content);
+                                    Clipboard.SetText(extracted);
+                                    if (!string.IsNullOrEmpty(extracted))
+                                    {
+                                        content += $"\n已复制到粘贴板: {extracted}";
+                                    }
+                                }
 
                                 ShowNotification(title, content);
                             }
@@ -202,7 +214,17 @@ namespace GotifyWindowsClient
         /// <param name="message"></param>
         private static void ShowNotification(string title, string message)
         {
-            _trayIcon.ShowBalloonTip(3000, title, message, ToolTipIcon.Info);
+            _trayIcon.ShowBalloonTip(5000, title, message, ToolTipIcon.Info);
+        }
+
+        /// <summary>
+        /// 根据正则表达式提取文本
+        /// </summary>
+        /// <returns></returns>
+        private static String ExtractText(string regx, string input)
+        {
+            var match = System.Text.RegularExpressions.Regex.Match(input, regx);
+            return match.Success ? match.Groups[1].Value : string.Empty;
         }
     }
 }
