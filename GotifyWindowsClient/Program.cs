@@ -148,9 +148,9 @@ namespace GotifyWindowsClient
                                 if (!string.IsNullOrEmpty(extractRegex))
                                 {
                                     var extracted = ExtractText(extractRegex, content);
-                                    Clipboard.SetText(extracted);
                                     if (!string.IsNullOrEmpty(extracted))
                                     {
+                                        Clipboard.SetText(extracted);
                                         content += $"\nÒÑ¸´ÖÆµ½Õ³Ìù°å: {extracted}";
                                     }
                                 }
